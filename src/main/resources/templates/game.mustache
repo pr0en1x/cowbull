@@ -3,7 +3,6 @@
 <body>
 <div>
     <form action="/logout" method="post">
-        <a href="/rating">Рейтинг пользователей</a>
         <input type="hidden" name="_csrf" value="{{_csrf.token}}" />
         <input type="submit" value="Выйти"/>
     </form>
@@ -18,9 +17,15 @@
 <div>Ваши попытки:</div>
 {{#games}}
     <div>
-        <b>{{id}}</b>
-        <span>{{text}}</span>
+        <b>{{text}}</b>
     </div>
 {{/games}}
+<div>Рейтинг пользователей:</div>
+{{#ratings}}
+    <div>
+        <b>{{username}}</b>
+        <i>{{ratio}}</i>
+    </div>
+{{/ratings}}
 </body>
 </html>

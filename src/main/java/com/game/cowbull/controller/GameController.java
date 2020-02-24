@@ -1,8 +1,10 @@
 package com.game.cowbull.controller;
 
 import com.game.cowbull.entity.Game;
+import com.game.cowbull.entity.Rating;
 import com.game.cowbull.entity.User;
 import com.game.cowbull.repo.GameRepo;
+import com.game.cowbull.repo.RatingRepo;
 import com.game.cowbull.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,7 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,7 +22,8 @@ import java.util.Map;
 public class GameController {
     @Autowired
     private GameRepo gameRepo;
-
+    @Autowired
+    private RatingRepo ratingRepo;
     @Autowired
     private UserRepo userRepo;
 
@@ -31,13 +33,14 @@ public class GameController {
     }
 
     public String result, finalText;
-    public int victories, tryings;
     public double midltryings;
     @PostMapping("/game")
-    public String add(@RequestParam String text, @AuthenticationPrincipal Principal user, Map<String, Object> model) {
+    public String add(@RequestParam String text, @AuthenticationPrincipal User user, Map<String, Object> model) {
         if (result==null) {
             result=random();
         }
+        int victories = user.getVictories();
+        int tryings = user.getTryings();
         tryings++;
         int bulls = 0;
         int cows = 0;
@@ -53,20 +56,32 @@ public class GameController {
             result = null;
             victories++;
             midltryings = (double) tryings / victories;
-            User userFromDb = userRepo.findByUsername(user.getName());
-            userFromDb.setRatio(midltryings);
-            userRepo.save(userFromDb);
-            finalText = text + " -- " + bulls + "Б" + cows + "К" + "\n" + " Вы победили!";
+            Rating rating = new Rating(user.getUsername(), midltryings);
+            Rating ratingFromDb = ratingRepo.findByUsername(user.getUsername());
+            if (ratingFromDb != null) {
+                ratingFromDb.setRatio(midltryings);
+                ratingRepo.save(ratingFromDb);
+            } else {
+                ratingRepo.save(rating);
+            }
+
+            finalText = text + " -- " + bulls + "Б" + cows + "К" + "  Вы победили!";
         } else {
             finalText = text + " -- " + bulls + "Б" + cows + "К";
         }
-        Game game = new Game(finalText);
+
+        user.setTryings(tryings);
+        user.setVictories(victories);
+        userRepo.save(user);
+
+        Game game = new Game(finalText, user);
         gameRepo.save(game);
 
-
-        Iterable<Game> games = gameRepo.findAll();
-
+        Iterable<Game> games = gameRepo.findAllByUser(user);
         model.put("games", games);
+
+        Iterable<Rating> ratings = ratingRepo.findAll();
+        model.put("ratings", ratings);
 
         return "game";
     }
