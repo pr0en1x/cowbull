@@ -28,7 +28,11 @@ public class GameController {
     private UserRepo userRepo;
 
     @GetMapping("/game")
-    public String greeting(Map<String, Object> model) {
+    public String greeting(@AuthenticationPrincipal User user, Map<String, Object> model) {
+        Iterable<Game> games = gameRepo.findAllByUser(user);
+        model.put("games", games);
+        Iterable<Rating> ratings = ratingRepo.findAllByOrderByRatioAsc();
+        model.put("ratings", ratings);
         return "game";
     }
 
