@@ -5,4 +5,5 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface RatingRepo extends CrudRepository<Rating, Long> {
     Rating findByUsername(String username);
+    Iterable<Rating> findAllByOrderByRatioAsc();
 }

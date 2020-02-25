@@ -80,7 +80,7 @@ public class GameController {
         Iterable<Game> games = gameRepo.findAllByUser(user);
         model.put("games", games);
 
-        Iterable<Rating> ratings = ratingRepo.findAll();
+        Iterable<Rating> ratings = ratingRepo.findAllByOrderByRatioAsc();
         model.put("ratings", ratings);
 
         return "game";
